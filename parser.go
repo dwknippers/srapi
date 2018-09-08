@@ -25,9 +25,16 @@ var re = map[string]*regexp.Regexp{
 	"days":          regexp.MustCompile(`(?sU)<a name="([0-9]{4}-[0-9]{2}-[0-9]{2})".*</table>`),
 	"time":          regexp.MustCompile(`(?sU)(([0-9]{2}:[0-9]{2}) - ([0-9]{2}:[0-9]{2})).*(<th.*class="times"|</table>)`),
 	"courseAndType": regexp.MustCompile(`<span>(.*)</span>`),
-	"teacher":       regexp.MustCompile(`(?sU)teacher.*">(.*)<\/a>`),
+	"teacher":       regexp.MustCompile(`(?sU)teacher.*">(.*)</a>`),
 	"nbsp":          regexp.MustCompile(`&nbsp;`),
 	"locationCode":  regexp.MustCompile(`(?sU)<span class="pull-right">.*([A-Z][0-9].[0-9]{2}).*</span>`),
+}
+
+func assignMatch(out *string, in *string, re *regexp.Regexp, index int) {
+	match := re.FindStringSubmatch(*out)
+	if len(match) > 0 {
+		*in = match[index]
+	}
 }
 
 func parse(scheduleHTML string) []Day {
@@ -37,8 +44,6 @@ func parse(scheduleHTML string) []Day {
 
 	for d := 0; d < len(daysMatch); d++ {
 		date := daysMatch[d][1]
-
-		//fmt.Println(date)
 		parsedDate, _ := time.Parse("2006-01-02", date)
 
 		timesMatch := re["time"].FindAllStringSubmatch(string(daysMatch[d][0]), -1)
@@ -51,19 +56,16 @@ func parse(scheduleHTML string) []Day {
 		for t := 0; t < len(timesMatch); t++ {
 			start, _ := time.Parse("15:04", timesMatch[t][2])
 			end, _ := time.Parse("15:04", timesMatch[t][3])
-			//fmt.Println("\t" + eventStart + " - " + eventEnd)
 
 			courseAndType := re["courseAndType"].FindAllStringSubmatch(timesMatch[t][0], -1)
 
 			course := courseAndType[0][1]
-			teacherName := re["teacher"].FindStringSubmatch(timesMatch[t][0])[1]
+			var teacherName string
+			assignMatch(&timesMatch[t][0], &teacherName, re["teacher"], 1)
 			eventType := re["nbsp"].ReplaceAllString(courseAndType[1][1], "")
 
-			//fmt.Println("\t\t" + eventCourse)
-			//fmt.Println("\t\t" + eventType)
-
-			locationCode := re["locationCode"].FindAllStringSubmatch(timesMatch[t][0], -1)[0][1]
-			//fmt.Println("\t\t" + locationCode)
+			var locationCode string
+			assignMatch(&timesMatch[t][0], &locationCode, re["locationCode"], 1)
 
 			day.Events[t] = Event{
 				Start:        start,
