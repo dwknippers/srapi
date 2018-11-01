@@ -62,7 +62,12 @@ func parse(scheduleHTML string) []Day {
 			course := courseAndType[0][1]
 			var teacherName string
 			assignMatch(&timesMatch[t][0], &teacherName, re["teacher"], 1)
-			eventType := re["nbsp"].ReplaceAllString(courseAndType[1][1], "")
+
+			var eventType string
+			// eventType is optional and as such not always matched
+			if len(courseAndType) > 1 {
+				eventType = re["nbsp"].ReplaceAllString(courseAndType[1][1], "")
+			}
 
 			var locationCode string
 			assignMatch(&timesMatch[t][0], &locationCode, re["locationCode"], 1)

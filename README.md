@@ -21,7 +21,7 @@ Where _\<Access Token\>_ would be your access token.
 ### Retrieve timetable
 localhost:8000/group/**{groupName}**/schedule/week/**{weekNumber}**
 
-Where **groupName**, and **weekNumber** correspond to the group name and week number respectively.
+Where **groupName**, and **weekNumber** correspond to the group name and relative week number respectively.
 
 Example output:
 ```
